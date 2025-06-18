@@ -1,35 +1,34 @@
 import React from "react";
-import costume from "../assets/costume.jpg";
-import jacket from "../assets/jacket.jpg";
-import jacket2 from "../assets/2.jpg";
-import jacket3 from "../assets/3.jpg";
 import Card from "./Card";
+import laptopImage from "../assets/laptop.png";
+import costumeImage from "../assets/costume.jpg";
+import jacketImage from "../assets/jacket.jpg";
+import img2 from "../assets/2.jpg";
+import img3 from "../assets/3.jpg";
 
 const Deals = () => {
-  const cards = [
-    { photo: costume, title: "Costume", price: "$17" },
-    { photo: jacket, title: "Costume", price: "$17" },
-    { photo: jacket2, title: "Costume", price: "$17" },
-    { photo: jacket3, title: "Costume", price: "$17" },
-    { photo: costume, title: "Costume", price: "$17" },
-    { photo: jacket, title: "Costume", price: "$17" },
-    { photo: jacket2, title: "Costume", price: "$17" },
-    { photo: jacket3, title: "Costume", price: "$17" },
-    { photo: costume, title: "Costume", price: "$17" },
-    { photo: jacket, title: "Costume", price: "$17" },
-    { photo: jacket2, title: "Costume", price: "$17" },
-    { photo: jacket3, title: "Costume", price: "$17" },
-    { photo: costume, title: "Costume", price: "$17" },
-    { photo: jacket, title: "Costume", price: "$17" },
-    { photo: jacket2, title: "Costume", price: "$17" },
+  const products = [
+    { photo: costumeImage, title: "Costume", price: "₹2500" },
+    { photo: jacketImage, title: "Jacket", price: "₹3000" },
+    { photo: img2, title: "Photo 2", price: "₹1500" },
+    { photo: img3, title: "Photo 3", price: "₹1800" },
+    { photo: costumeImage, title: "Costume", price: "₹2500" },
+    { photo: jacketImage, title: "Jacket", price: "₹3000" },
+    { photo: img2, title: "Photo 2", price: "₹1500" },
+    { photo: img3, title: "Photo 3", price: "₹1800" },{ photo: costumeImage, title: "Costume", price: "₹2500" },
+    { photo: jacketImage, title: "Jacket", price: "₹3000" },
+    { photo: img2, title: "Photo 2", price: "₹1500" },
+    { photo: img3, title: "Photo 3", price: "₹1800" },{ photo: costumeImage, title: "Costume", price: "₹2500" },
+    { photo: jacketImage, title: "Jacket", price: "₹3000" },
+    { photo: img2, title: "Photo 2", price: "₹1500" },
+    { photo: img3, title: "Photo 3", price: "₹1800" },
   ];
+
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-2 md:grid-cols-3  lg:grid-cols-4 xl:grid-cols-5 md:w-max xl:w-[70vw]      gap-4 mt-4 mx-auto">
-        {cards.map((card) => (
-          <Card photo={card.photo} title={card.title} price={card.price} />
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-6 justify-center p-4">
+      {products.map((product, index) => (
+        <Card key={index} {...product} />
+      ))}
     </div>
   );
 };
