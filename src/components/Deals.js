@@ -1,6 +1,5 @@
 import React from "react";
 import Card from "./Card";
-import laptopImage from "../assets/laptop.png";
 import costumeImage from "../assets/costume.jpg";
 import jacketImage from "../assets/jacket.jpg";
 import img2 from "../assets/2.jpg";

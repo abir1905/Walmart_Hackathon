@@ -5,9 +5,7 @@ import { FaLayerGroup } from "react-icons/fa";
 import { HiUserGroup } from "react-icons/hi";
 import { GoSearch } from "react-icons/go";
 import { MdLogin, MdLogout } from "react-icons/md";
-import { BiWorld } from "react-icons/bi";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import { BsPhone } from "react-icons/bs";
 import { useCart } from "../context/CartContext";
 
 const Navbar = () => {

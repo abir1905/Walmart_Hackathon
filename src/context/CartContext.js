@@ -34,12 +34,6 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const removeFromCart = (itemId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== itemId)
-    );
-  };
-
   const clearCart = () => {
     setCartItems([]);
   };
