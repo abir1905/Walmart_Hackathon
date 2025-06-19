@@ -8,18 +8,20 @@ import Cart from "./components/Cart";
 function App() {
   return (
     <Router>
-      <div className="bg-[#e6f1fc]">
+      <div className="bg-[#e6f1fc] min-h-screen flex flex-col">
         <Navbar />
-        <Routes>
-          <Route path="/" element={
-            <>
-              <Hero />
-              <Deals />
-              <Footer />
-            </>
-          } />
-          <Route path="/cart" element={<Cart />} />
-        </Routes>
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={
+              <>
+                <Hero />
+                <Deals />
+              </>
+            } />
+            <Route path="/cart" element={<Cart />} />
+          </Routes>
+        </main>
+        <Footer />
       </div>
     </Router>
   );

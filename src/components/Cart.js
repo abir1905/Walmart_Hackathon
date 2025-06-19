@@ -32,12 +32,26 @@ const Cart = () => {
   };
 
   const removeItem = (indexToRemove) => {
+    const removedItem = cartItems[indexToRemove];
     const updatedCart = cartItems.filter((_, i) => i !== indexToRemove);
     setCartItems(updatedCart);
-  };
+  };  
 
+  const updateQuantity = (index, newQty) => {
+    const updated = [...cartItems];
+    updated[index].quantity = newQty;
+    setCartItems(updated);
+    setCartTotal(updated.reduce((acc, item) => acc + item.price * item.quantity, 0));
+  };
+  
   return (
     <div className="container mx-auto px-4 py-8">
+      {cartItems.length > 0 && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 transition-all duration-300">
+          You have {cartItems.length} item{cartItems.length > 1 ? 's' : ''} in your cart.
+        </div>
+      )}
+  
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
@@ -47,16 +61,40 @@ const Cart = () => {
           ) : (
             <div className="space-y-4">
               {cartItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between border-b pb-4">
+                <div
+                  key={index}
+                  className="flex items-center justify-between border-b pb-4 transition-transform duration-300 hover:scale-[1.01]"
+                >
                   <div className="flex items-center space-x-4">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
                     <div>
                       <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-gray-600">₹{item.price} × {item.quantity || 1}</p>
+                      <p className="text-gray-600">
+                        ₹{item.price} × {item.quantity}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <span>Qty: {item.quantity || 1}</span>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => updateQuantity(index, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                        className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                      >
+                        -
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(index, item.quantity + 1)}
+                        className="px-2 py-1 bg-gray-200 rounded"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       onClick={() => removeItem(index)}
                       className="text-red-500 hover:text-red-700"
@@ -69,7 +107,7 @@ const Cart = () => {
             </div>
           )}
         </div>
-
+  
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Wallet</h2>
           <div className="mb-6">
@@ -83,7 +121,11 @@ const Cart = () => {
           <button
             onClick={handlePayment}
             disabled={cartItems.length === 0}
-            className={`w-full py-3 rounded-lg text-white font-medium ${cartItems.length === 0 ? 'bg-gray-400' : 'bg-[#0071dc] hover:bg-[#06529a]'}`}
+            className={`w-full py-3 rounded-lg text-white font-medium ${
+              cartItems.length === 0
+                ? 'bg-gray-400'
+                : 'bg-[#0071dc] hover:bg-[#06529a]'
+            }`}
           >
             Pay Now
           </button>
