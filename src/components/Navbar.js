@@ -38,7 +38,7 @@ const Navbar = () => {
           <input
             type="search"
             className="rounded-full py-1.5 px-4 outline-0 flex-1 text-black"
-            placeholder="Search products..."
+            placeholder="       Search products..."
           />
           <div className="absolute bg-[#ffc220] p-1.5 rounded-full left-1.5">
             <GoSearch className="text-black" />
