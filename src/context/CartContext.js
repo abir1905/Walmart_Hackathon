@@ -11,12 +11,33 @@ export const CartProvider = ({ children }) => {
 
   // ✅ Automatically update cartTotal whenever cartItems change
   useEffect(() => {
-    const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const total = cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     setCartTotal(total);
   }, [cartItems]);
+  
 
   const addToCart = (product) => {
-    setCartItems((prev) => [...prev, product]);
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [...prevItems, { ...product, quantity: 1 }];
+      }
+    });
+  };
+
+  const removeFromCart = (itemId) => {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.id !== itemId)
+    );
   };
 
   const clearCart = () => {

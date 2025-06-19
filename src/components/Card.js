@@ -1,25 +1,24 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
-import laptopImage from "../assets/laptop.png";
 
 const Card = ({ photo, title, price }) => {
-  const { addToCart } = useCart(); // ✅ Hook used inside component
+  const { addToCart } = useCart();
 
   const handleAdd = () => {
     const item = {
-      name: title,
+      id: `${title}-${price}`, // ✅ unique ID
+      title,
       price: parseInt(price.replace("₹", "").replace("$", "")),
       image: photo,
-      quantity: 1,
     };
     addToCart(item);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center ">
-      <img src={photo} alt="" className="w-52 h-56 rounded-[1rem]" />
+    <div className="flex flex-col items-center justify-center">
+      <img src={photo} alt={title} className="w-52 h-56 rounded-[1rem]" />
       <div className="flex justify-between w-[13rem]">
-        <p className="font-bold text-[13px] ">
+        <p className="font-bold text-[13px]">
           {title + " Rapid Charger & Stylus Pen"}
         </p>
         <p className="font-bold">{price}</p>
