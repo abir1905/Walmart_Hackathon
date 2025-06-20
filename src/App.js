@@ -4,6 +4,8 @@ import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
+import Login from "./components/login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -12,13 +14,26 @@ function App() {
         <Navbar />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={
-              <>
-                <Hero />
-                <Deals />
-              </>
-            } />
-            <Route path="/cart" element={<Cart />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Hero />
+                    <Deals />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
         <Footer />

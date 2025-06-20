@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo1.png";
 import { FaLayerGroup } from "react-icons/fa";
@@ -11,6 +11,14 @@ import { useCart } from "../context/CartContext";
 const Navbar = () => {
   const { cartItems } = useCart();
   const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    // Get username from localStorage after login
+    const user = localStorage.getItem("username");
+    if (user) setUsername(user);
+  }, []);
 
   return (
     <div>
@@ -49,10 +57,18 @@ const Navbar = () => {
             <MdLogin className="text-[17px] rotate-90" />
             <p className="text-[16px] font-semibold">Register</p>
           </div>
-          <div className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full whitespace-nowrap">
-            <MdLogout className="text-[20px] -rotate-90" />
-            <p className="text-[16px] font-semibold">Sign in</p>
-          </div>
+
+          {username ? (
+            <div className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full whitespace-nowrap">
+              <MdLogout className="text-[20px] -rotate-90" />
+              <p className="text-[16px] font-semibold">Welcome {username}</p>
+            </div>
+          ) : (
+            <Link to="/login" className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full whitespace-nowrap">
+              <MdLogout className="text-[20px] -rotate-90" />
+              <p className="text-[16px] font-semibold">Sign in</p>
+            </Link>
+          )}
 
           {/* Cart with badge */}
           <Link to="/cart" className="relative hover:bg-[#06529a] p-3 rounded-full flex items-center gap-2">
