@@ -3,6 +3,22 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
+const express = require("express");
+const router = express.Router();
+
+// Local login route
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+      return res.json({ user });
+    });
+  })(req, res, next);
+});
+
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
