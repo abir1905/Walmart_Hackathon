@@ -1,24 +1,36 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Deals from "./components/Deals";
-import Footer from "./components/Footer";
-import Hero from "./components/Hero";
-import Navbar from "./components/Navbar";
-import Cart from "./components/Cart";
-import Login from "./components/login";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom';
 
-// Create a wrapper for route-aware layout rendering
+import Deals from './components/Deals';
+import Footer from './components/Footer';
+import Hero from './components/Hero';
+import Navbar from './components/Navbar';
+import Cart from './components/Cart';
+import Login from './components/login';
+import Signup from './components/signup';
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthLayout from './components/AuthLayout'; // Handles animated auth layout
+
 const AppContent = () => {
   const location = useLocation();
-  const isLoginRoute = location.pathname === "/login";
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <div className="bg-[#e6f1fc] min-h-screen flex flex-col">
-      {!isLoginRoute && <Navbar />}
+      {!isAuthRoute && <Navbar />}
       <main className="flex-grow">
         <Routes>
-          <Route path="/login" element={<Login />} />
+          {/* Animated Auth Pages */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route>
+
+          {/* Protected Main App Pages */}
           <Route
             path="/"
             element={
@@ -40,7 +52,7 @@ const AppContent = () => {
           />
         </Routes>
       </main>
-      {!isLoginRoute && <Footer />}
+      {!isAuthRoute && <Footer />}
     </div>
   );
 };

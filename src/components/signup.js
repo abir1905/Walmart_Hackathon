@@ -1,102 +1,83 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import logoimg from "../assets/logo1.png";
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     window.open("http://localhost:5000/auth/google", "_self");
   };
 
-  const handleFacebookLogin = () => {
+  const handleFacebookSignup = () => {
     window.open("http://localhost:5000/auth/facebook", "_self");
   };
 
-  const handleManualLogin = async () => {
-    if (!email || !password) {
-      toast.warn("Please enter both email and password");
+  const handleManualSignup = async () => {
+    if (!name || !email || !password) {
+      toast.warn("Please fill in all fields");
       return;
     }
 
     try {
-      const res = await fetch("http://localhost:5000/auth/manual-login", {
+      const res = await fetch("http://localhost:5000/auth/manual-signup", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
-      if (!res.ok) throw new Error("Invalid credentials");
+      if (!res.ok) throw new Error("Signup failed");
 
       const data = await res.json();
-      toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
+      toast.success(`Welcome ${data.user.displayName || data.user.name}!`);
       navigate("/");
     } catch (err) {
-      toast.error("Login failed. Check your credentials.");
+      toast.error("Signup failed. Try again.");
     }
   };
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/auth/login/success", {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
-          navigate("/");
-        }
-      } catch {
-        // Not authenticated
-      } finally {
-        setCheckingAuth(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  if (checkingAuth) return <div className="flex h-screen justify-center items-center text-xl">Loading...</div>;
-
   return (
     <div className="flex h-screen bg-gray-100 font-sans">
-      {/* Left Panel */}
+      {/* Left Panel (same as login) */}
       <div className="w-1/2 bg-gradient-to-br from-blue-600 to-blue-400 p-10 text-white flex flex-col justify-center rounded-r-3xl">
         <h1 className="text-4xl font-bold mb-4 self-center">"Revolutionize Your Workflow!"</h1>
         <h1 className="text-2xl font-bold mb-4 italic self-center">
           "Manage smarter. Sell faster. Grow bigger."
         </h1>
-        <p className="text-md mb-8 self-center text-center">
-          Join thousands of smart sellers using our dashboard to streamline operations, unlock insights,
-          and dominate the digital marketplace — all in one sleek interface.
+        <p className="text-md mb-8 self-center">
+          Join thousands of smart sellers using our dashboard to streamline operations, unlock insights, and dominate the digital marketplace — all in one sleek interface.
         </p>
-        <img src={logoimg} alt="Logo" className="w-3/4 mx-auto" />
+        <img src={logoimg} alt="Characters" className="w-3/4 mx-auto" />
       </div>
 
-      {/* Right Panel */}
+      {/* Right Panel (signup form) */}
       <div className="w-1/2 bg-white p-10 flex flex-col justify-center">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-2">
             <div className="bg-blue-600 p-2 rounded-full">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18v18H3V3z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 01-8 0M5 21h14a2 2 0 002-2v-7H3v7a2 2 0 002 2z" />
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-bold">Welcome Back</h2>
-          <p className="text-sm text-gray-500">Please login to your account</p>
+          <h2 className="text-2xl font-bold">Create an Account</h2>
+          <p className="text-sm text-gray-500">Sign up to get started</p>
         </div>
 
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
           <input
             type="email"
             placeholder="Email address"
@@ -119,34 +100,31 @@ const Login = () => {
               👁️
             </span>
           </div>
-          <div className="flex justify-end text-sm text-blue-600 cursor-pointer">
-            Forgot Password?
-          </div>
           <button
             type="button"
-            onClick={handleManualLogin}
+            onClick={handleManualSignup}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
           >
-            Login
+            Sign Up
           </button>
         </form>
 
         <div className="flex items-center my-4">
           <hr className="flex-grow border-gray-300" />
-          <span className="mx-4 text-gray-500">Or Login With</span>
+          <span className="mx-4 text-gray-500">Or Sign Up With</span>
           <hr className="flex-grow border-gray-300" />
         </div>
 
         <div className="flex gap-4 mb-6">
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             className="w-1/2 flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 hover:bg-gray-100"
           >
             <img src="https://img.icons8.com/color/16/google-logo.png" alt="Google" />
             Google
           </button>
           <button
-            onClick={handleFacebookLogin}
+            onClick={handleFacebookSignup}
             className="w-1/2 flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 hover:bg-gray-100"
           >
             <img src="https://img.icons8.com/fluency/16/facebook-new.png" alt="Facebook" />
@@ -155,18 +133,17 @@ const Login = () => {
         </div>
 
         <p className="text-center text-sm text-gray-500">
-            Don't have an account?{" "}
+          Already have an account?{" "}
           <span
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/login")}
             className="text-blue-600 font-semibold cursor-pointer"
           >
-              Sign up
+            Login
           </span>
         </p>
-
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Signup;
