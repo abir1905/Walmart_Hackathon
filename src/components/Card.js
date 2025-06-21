@@ -1,31 +1,36 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
 
-const Card = ({ photo, title, price }) => {
+const Card = ({ id, image, title, price }) => {
   const { addToCart } = useCart();
 
   const handleAdd = () => {
     const item = {
-      id: `${title}-${price}`, // ✅ unique ID
-      title,
-      price: parseInt(price.replace("₹", "").replace("$", "")),
-      image: photo,
+      id: id, // Use the actual ID from props
+      title, // Keep title for display
+      name: title, // Also use name for cart context
+      price: typeof price === 'string' 
+        ? parseInt(price.replace("₹", "").replace("$", "")) 
+        : price,
+      image: image,
     };
     addToCart(item);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <img src={photo} alt={title} className="w-52 h-56 rounded-[1rem]" />
-      <div className="flex justify-between w-[13rem]">
-        <p className="font-bold text-[13px]">
-          {title + " Rapid Charger & Stylus Pen"}
-        </p>
-        <p className="font-bold">{price}</p>
+    <div className="flex flex-col items-center justify-center w-64 bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-all">
+      <div className="w-full h-48 overflow-hidden rounded-lg mb-3">
+        <img 
+          src={image} 
+          alt={title} 
+          className="w-full h-full object-cover"
+        />
       </div>
+      <h3 className="font-bold text-lg mb-1 text-center">{title}</h3>
+      <p className="text-lg font-bold text-blue-600 mb-3">{price}</p>
       <button
         onClick={handleAdd}
-        className="mt-2 px-4 py-1 rounded bg-blue-500 text-white"
+        className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
       >
         Add to Cart
       </button>

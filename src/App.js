@@ -16,7 +16,8 @@ import Cart from './components/Cart';
 import Login from './components/login';
 import Signup from './components/signup';
 import ProtectedRoute from './components/ProtectedRoute';
-import AuthLayout from './components/AuthLayout'; // Handles animated auth layout
+import AuthLayout from './components/AuthLayout';
+import ChatBot from './components/ChatBot'; // Add this import
 
 const AppContent = () => {
   const location = useLocation();
@@ -69,6 +70,7 @@ const AppContent = () => {
         </Routes>
       </main>
       {!isAuthRoute && <Footer />}
+      <ChatBot /> {/* Add this line */}
     </div>
   );
 };

@@ -1,7 +1,10 @@
-import React, {useEffect } from "react";
+import React, { useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Import default images for products
+import defaultImage from "../assets/defaultImage.png";
 
 const Cart = () => {
   const {
@@ -121,13 +124,21 @@ const Cart = () => {
                 <div key={index} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
                   <div className="flex items-center space-x-4">
                     <img
-                      src={item.image}
+                      src={item.image || defaultImage}
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = defaultImage;
+                      }}
                     />
                     <div>
                       <h3 className="font-medium">{item.name}</h3>
+                      {item.description && (
+                        <p className="text-gray-600 text-sm">{item.description}</p>
+                      )}
                       <p className="text-gray-600">₹{item.price} × {item.quantity}</p>
+                      <p className="text-gray-600">Total: ₹{item.price * item.quantity}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -167,22 +178,21 @@ const Cart = () => {
             <p className="text-2xl font-bold">₹{walletBalance}</p>
           </div>
           <div className="mb-6">
-  <label className="block text-gray-600 mb-1">Recharge Amount (₹)</label>
-  <input
-    type="number"
-    min="1"
-    value={rechargeAmount}
-    onChange={(e) => setRechargeAmount(parseInt(e.target.value) || 0)}
-    className="w-full mb-2 px-4 py-2 border rounded"
-  />
-  <button
-    onClick={() => handleRecharge(rechargeAmount)}
-    className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
-  >
-    Recharge ₹{rechargeAmount}
-  </button>
-</div>
-
+            <label className="block text-gray-600 mb-1">Recharge Amount (₹)</label>
+            <input
+              type="number"
+              min="1"
+              value={rechargeAmount}
+              onChange={(e) => setRechargeAmount(parseInt(e.target.value) || 0)}
+              className="w-full mb-2 px-4 py-2 border rounded"
+            />
+            <button
+              onClick={() => handleRecharge(rechargeAmount)}
+              className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Recharge ₹{rechargeAmount}
+            </button>
+          </div>
 
           <div className="mb-4">
             <p className="text-gray-600">Cart Total</p>
