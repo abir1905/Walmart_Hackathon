@@ -3,6 +3,30 @@ const passport = require("passport");
 
 const router = express.Router();
 
+const User = require("../models/user"); // Assuming you have a User model
+const bcrypt = require("bcrypt");
+
+// -------------------- Manual Login --------------------
+router.post("/manual-login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+    req.login(user, (err) => {
+      if (err) return res.status(500).json({ message: "Login error" });
+
+      return res.status(200).json({ user });
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // -------------------- Google Auth --------------------
 
 // Start Google OAuth

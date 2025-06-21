@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const express = require("express");
 const Razorpay = require("razorpay");
@@ -8,14 +8,13 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
-const LocalStrategy = require("passport-local").Strategy;
 
 const User = require("./models/user");
-require("./auth/passport"); // Google strategy
+require("./auth/passport"); // ✅ Google + Local strategies
 
-const authRoutes = require("./Routes/auth"); // ✅ Move this AFTER defining app
+const authRoutes = require("./Routes/auth");
 
-const app = express(); // ✅ Define app BEFORE using it
+const app = express();
 
 // ---------------------- Middleware -----------------------
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
@@ -25,7 +24,13 @@ app.use(session({
   secret: process.env.COOKIE_SECRET || "your_cookie_secret",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false, // true in production with HTTPS
+    sameSite: "lax",
+  }
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -38,21 +43,6 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch((err) => {
   console.error("❌ MongoDB connection error:", err);
   process.exit(1);
-});
-
-// ---------------------- Passport Local Strategy -----------------------
-passport.use(new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
-  const user = await User.findOne({ email });
-  if (!user) return done(null, false);
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return done(null, false);
-  return done(null, user);
-}));
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  const user = await User.findById(id);
-  done(null, user);
 });
 
 // ---------------------- Razorpay Routes -----------------------
@@ -80,8 +70,8 @@ app.post("/create-order", async (req, res) => {
 
 app.post("/verify-payment", (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
   const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+
   const expectedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
     .update(body)
@@ -95,14 +85,28 @@ app.post("/verify-payment", (req, res) => {
 });
 
 // ---------------------- Local Auth Routes -----------------------
+
+// Mount the auth route
+app.use("/auth", require("./Routes/auth")); // This enables /auth/manual-login
+
+// Optional logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.originalUrl}`);
+  next();
+});
+
 app.post("/signup", async (req, res) => {
   const { email, password, name } = req.body;
-  const existing = await User.findOne({ email });
-  if (existing) return res.status(400).json({ error: "User exists" });
+  try {
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ error: "User already exists" });
 
-  const hashed = await bcrypt.hash(password, 10);
-  const user = await User.create({ email, password: hashed, name });
-  res.status(200).json(user);
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ email, password: hashed, name });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Signup failed" });
+  }
 });
 
 app.post("/login", passport.authenticate("local"), (req, res) => {
@@ -114,18 +118,15 @@ app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "em
 
 app.get("/auth/google/callback",
   passport.authenticate("google", {
-    successRedirect: "http://localhost:3000/", // ✅ Redirect to home instead of /dashboard
+    successRedirect: "http://localhost:3000/",
     failureRedirect: "http://localhost:3000/login"
   })
 );
 
 // ---------------------- Auth Utility Routes -----------------------
 app.get("/auth/user", (req, res) => {
-  if (req.user) {
-    res.json(req.user);
-  } else {
-    res.status(401).json({ error: "Not authenticated" });
-  }
+  if (req.user) res.json(req.user);
+  else res.status(401).json({ error: "Not authenticated" });
 });
 
 app.get("/auth/logout", (req, res) => {
@@ -134,8 +135,8 @@ app.get("/auth/logout", (req, res) => {
   });
 });
 
-// ---------------------- Attach Route File -----------------------
-app.use("/auth", authRoutes); // ✅ Now used after defining app
+// ---------------------- External Route File -----------------------
+// app.use("/auth", authRoutes);
 
 // ---------------------- Start Server -----------------------
 const PORT = process.env.PORT || 5000;

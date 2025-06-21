@@ -1,9 +1,12 @@
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
 } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Deals from './components/Deals';
 import Footer from './components/Footer';
@@ -17,10 +20,23 @@ import AuthLayout from './components/AuthLayout'; // Handles animated auth layou
 
 const AppContent = () => {
   const location = useLocation();
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
+  const isAuthRoute =
+    location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <div className="bg-[#e6f1fc] min-h-screen flex flex-col">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       {!isAuthRoute && <Navbar />}
       <main className="flex-grow">
         <Routes>

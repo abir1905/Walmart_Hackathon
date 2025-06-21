@@ -23,25 +23,30 @@ const Signup = () => {
       toast.warn("Please fill in all fields");
       return;
     }
-
+  
     try {
-      const res = await fetch("http://localhost:5000/auth/manual-signup", {
+      const res = await fetch("http://localhost:5000/signup", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-
-      if (!res.ok) throw new Error("Signup failed");
-
-      const data = await res.json();
-      toast.success(`Welcome ${data.user.displayName || data.user.name}!`);
-      navigate("/");
+  
+      const body = await res.json();
+  
+      if (res.ok) {
+        toast.success("Sign up completed");
+        navigate("/login");
+      } else if (res.status === 400 && body.error?.includes("exists")) {
+        toast.error("User already exists, please login from login page");
+      } else {
+        throw new Error(body.error || "Signup failed");
+      }
     } catch (err) {
-      toast.error("Signup failed. Try again.");
+      toast.error(err.message || "Signup failed. Try again.");
     }
   };
-
+  
   return (
     <div className="flex h-screen bg-gray-100 font-sans">
       {/* Left Panel (same as login) */}

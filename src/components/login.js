@@ -23,7 +23,7 @@ const Login = () => {
       toast.warn("Please enter both email and password");
       return;
     }
-
+  
     try {
       const res = await fetch("http://localhost:5000/auth/manual-login", {
         method: "POST",
@@ -33,37 +33,44 @@ const Login = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-
-      if (!res.ok) throw new Error("Invalid credentials");
-
+  
       const data = await res.json();
-      toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
-      navigate("/");
+      if (res.ok) {
+        toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
+        navigate("/");
+      } else if (res.status === 401) {
+        toast.error("Wrong password or emailid");
+      } else {
+        // any other server error
+        toast.error(data.message || "Login failed. Please try again.");
+      }
     } catch (err) {
-      toast.error("Login failed. Check your credentials.");
+      toast.error("Network error. Please try again.");
     }
   };
-
+  
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch("http://localhost:5000/auth/login/success", {
           credentials: "include",
         });
+  
+        const data = await res.json();
         if (res.ok) {
-          const data = await res.json();
           toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
           navigate("/");
         }
       } catch {
-        // Not authenticated
+        // Not authenticated; no toast needed
       } finally {
         setCheckingAuth(false);
       }
     };
-
+  
     checkAuth();
   }, [navigate]);
+  
 
   if (checkingAuth) return <div className="flex h-screen justify-center items-center text-xl">Loading...</div>;
 
