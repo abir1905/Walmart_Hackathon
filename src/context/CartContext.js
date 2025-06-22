@@ -22,19 +22,20 @@ export const CartProvider = ({ children }) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
       if (existingItem) {
+        // Add the new quantity to existing quantity
         return prevItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
       } else {
-        // Add the product with all necessary properties
+        // Add the product with the specified quantity
         return [...prevItems, { 
           id: product.id,
-          name: product.title || product.name, // Use both for compatibility
+          name: product.name,
           price: product.price,
           image: product.image,
-          quantity: 1 
+          quantity: product.quantity
         }];
       }
     });
