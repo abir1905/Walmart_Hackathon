@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
 } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Deals from './components/Deals';
@@ -17,12 +17,45 @@ import Login from './components/login';
 import Signup from './components/signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthLayout from './components/AuthLayout';
-import ChatBot from './components/ChatBot'; // Add this import
+import ChatBot from './components/ChatBot';
 
 const AppContent = () => {
   const location = useLocation();
-  const isAuthRoute =
+  const [, setUser] = useState(null);
+  const isAuthRoute = 
     location.pathname === '/login' || location.pathname === '/signup';
+  
+  // Track if welcome toast has been shown
+  const welcomeToastShown = useRef(false);
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/auth/login/success", {
+          credentials: "include",
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+          setUser(data.user);
+          
+          // Check for login success parameter and if toast hasn't been shown
+          if (location.search.includes('login=success') && !welcomeToastShown.current) {
+            toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
+            welcomeToastShown.current = true;  // Mark as shown
+            
+            // Clean URL without causing re-render
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState(null, "", cleanUrl);
+          }
+        }
+      } catch (error) {
+        console.error("Login check error:", error);
+      }
+    };
+
+    checkLogin();
+  }, [location]);
 
   return (
     <div className="bg-[#e6f1fc] min-h-screen flex flex-col">
@@ -70,7 +103,7 @@ const AppContent = () => {
         </Routes>
       </main>
       {!isAuthRoute && <Footer />}
-      <ChatBot /> {/* Add this line */}
+      <ChatBot />
     </div>
   );
 };

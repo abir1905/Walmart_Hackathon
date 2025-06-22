@@ -36,8 +36,7 @@ const Login = () => {
   
       const data = await res.json();
       if (res.ok) {
-        toast.success(`Welcome back ${data.user.displayName || data.user.name}!`);
-        navigate("/");
+        navigate("/?login=success");
       } else if (res.status === 401) {
         toast.error("Wrong password or emailid");
       } else {
