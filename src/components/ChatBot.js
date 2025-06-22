@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaMicrophone, FaTimes } from 'react-icons/fa';
+import { products } from '../assets/images';
 
 const ChatBot = () => {
   const { addToCart } = useCart();
@@ -17,58 +18,6 @@ const ChatBot = () => {
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false); // Additional ref to track listening state
   const speechSynthesisRef = useRef(null);
-
-  // Memoized products array to prevent recreation on every render
-  const products = useMemo(() => [
-    {
-      id: "costume-1",
-      name: "Costume",
-      price: 2500,
-      image: "./assets/costume.jpg",
-      sizes: ["S", "M", "L", "XL"],
-      colors: ["Red", "Blue", "Black", "White"]
-    },
-    {
-      id: "jacket-1",
-      name: "Jacket",
-      price: 3000,
-      image: "./assets/jacket.jpg",
-      sizes: ["S", "M", "L"],
-      colors: ["Black", "Brown", "Navy"]
-    },
-    {
-      id: "photo-2",
-      name: "Photo Frame",
-      price: 1500,
-      image: "./assets/2.jpg",
-      sizes: ["One Size"],
-      colors: ["Silver", "Gold", "Black"]
-    },
-    {
-      id: "photo-3",
-      name: "Wall Art",
-      price: 1800,
-      image: "./assets/3.jpg", 
-      sizes: ["One Size"],
-      colors: ["Multicolor"]
-    },
-    {
-      id: "laptop-1",
-      name: "Laptop",
-      price: 65000,
-      image: "./assets/laptop.jpg",
-      sizes: ["Standard"],
-      colors: ["Silver", "Space Gray"]
-    },
-    {
-      id: "headphones-1",
-      name: "Headphones",
-      price: 12000,
-      image: "headphones.jpg",
-      sizes: ["Standard"],
-      colors: ["Black", "White"]
-    }
-  ], []);
 
   // Add bot message with speech synthesis
   const addBotMessage = useCallback((text) => {
