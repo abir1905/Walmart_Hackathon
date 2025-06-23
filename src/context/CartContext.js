@@ -9,36 +9,76 @@ export const CartProvider = ({ children }) => {
   const [walletBalance, setWalletBalance] = useState(50000);
   const [cartTotal, setCartTotal] = useState(0);
 
+  // Safe calculation of cart total
   useEffect(() => {
-    const total = cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const total = cartItems.reduce((sum, item) => {
+      const price = parseFloat(item.price);
+      const quantity = parseInt(item.quantity, 10);
+      
+      if (isNaN(price) || isNaN(quantity)) return sum;
+      
+      return sum + price * quantity;
+    }, 0);
+    
     setCartTotal(total);
   }, [cartItems]);
 
   const addToCart = (product) => {
+    // Ensure numeric values
+    // In addToCart function
+    const numericProduct = {
+      ...product,
+      price: parseFloat(product.price),
+      quantity: parseInt(product.quantity, 10)
+    };
+
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
+      const existingItem = prevItems.find(item => item.id === numericProduct.id);
       
       if (existingItem) {
-        // Add the new quantity to existing quantity
-        return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + product.quantity }
+        return prevItems.map(item =>
+          item.id === numericProduct.id
+            ? { 
+                ...item, 
+                quantity: item.quantity + numericProduct.quantity 
+              }
             : item
         );
       } else {
-        // Add the product with the specified quantity
-        return [...prevItems, { 
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          quantity: product.quantity
-        }];
+        return [...prevItems, numericProduct];
       }
     });
+  };
+
+  const removeFromCart = (id) => {
+    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id, newQuantity) => {
+    const quantity = parseInt(newQuantity, 10);
+    
+    // Validate quantity
+    if (isNaN(quantity)) return;
+    
+    setCartItems(prevItems => {
+      if (quantity < 1) {
+        return prevItems.filter(item => item.id !== id);
+      }
+      
+      return prevItems.map(item =>
+        item.id === id ? { ...item, quantity } : item
+      );
+    });
+  };
+
+  const checkout = () => {
+    if (walletBalance < cartTotal) {
+      return { success: false, message: 'Insufficient wallet balance' };
+    }
+    
+    setWalletBalance(prev => prev - cartTotal);
+    setCartItems([]);
+    return { success: true, message: 'Checkout successful' };
   };
 
   const clearCart = () => {
@@ -49,13 +89,14 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cartItems,
-        setCartItems,
         walletBalance,
-        setWalletBalance,
-        cartTotal,
-        setCartTotal,
+        cartTotal,  // Only expose the value, not setter
         addToCart,
-        clearCart
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        checkout,  // Provide checkout function
+        setWalletBalance
       }}
     >
       {children}

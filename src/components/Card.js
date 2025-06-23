@@ -5,14 +5,18 @@ const Card = ({ id, image, title, price }) => {
   const { addToCart } = useCart();
 
   const handleAdd = () => {
+    // Convert price to float, not int
+    const numericPrice = typeof price === 'string' 
+      ? parseFloat(price.replace("₹", "").replace("$", "").replace(",", "")) 
+      : price;
+
     const item = {
-      id: id, // Use the actual ID from props
-      title, // Keep title for display
-      name: title, // Also use name for cart context
-      price: typeof price === 'string' 
-        ? parseInt(price.replace("₹", "").replace("$", "")) 
-        : price,
+      id: id,
+      title: title,
+      name: title,
+      price: numericPrice,
       image: image,
+      quantity: 1  // Explicitly set quantity
     };
     addToCart(item);
   };

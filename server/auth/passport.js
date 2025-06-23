@@ -3,6 +3,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto"); // ADD THIS LINE
 
 // Session Serialization
 passport.serializeUser((user, done) => {

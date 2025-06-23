@@ -1,36 +1,30 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useCart } from "../context/CartContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Import default images for products
 import defaultImage from "../assets/defaultImage.png";
 
 const Cart = () => {
   const {
     cartItems,
-    setCartItems,
     walletBalance,
-    setWalletBalance,
     cartTotal,
-    setCartTotal,
+    removeFromCart,
+    updateQuantity,
+    checkout,
+    setWalletBalance
   } = useCart();
 
-  const [rechargeAmount, setRechargeAmount] = React.useState(100);
+  const [rechargeAmount, setRechargeAmount] = React.useState(10000);
 
-  useEffect(() => {
-    const total = cartItems.reduce(
-      (sum, item) => sum + item.price * (item.quantity || 1),
-      0
-    );
-    setCartTotal(total);
-  }, [cartItems, setCartTotal]);
+  const formatCurrency = (value) => {
+    const num = parseFloat(value);
+    return isNaN(num) ? "₹0.00" : "₹" + num.toFixed(2);
+  };
 
   const handlePayment = () => {
-    if (walletBalance >= cartTotal) {
-      setWalletBalance(prev => prev - cartTotal);
-      setCartItems([]);
-      setCartTotal(0);
+    const result = checkout();
+    if (result.success) {
       toast.success("Payment successful! Items will be delivered soon.");
     } else {
       toast.error("Insufficient wallet balance!");
@@ -91,18 +85,6 @@ const Cart = () => {
     }
   };
 
-  const removeItem = (indexToRemove) => {
-    const updatedCart = cartItems.filter((_, i) => i !== indexToRemove);
-    setCartItems(updatedCart);
-  };
-
-  const updateQuantity = (index, newQty) => {
-    if (newQty < 1) return;
-    const updated = [...cartItems];
-    updated[index].quantity = newQty;
-    setCartItems(updated);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <ToastContainer position="top-center" />
@@ -120,8 +102,8 @@ const Cart = () => {
             <p>Your cart is empty</p>
           ) : (
             <div className="space-y-4">
-              {cartItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
+              {cartItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
                   <div className="flex items-center space-x-4">
                     <img
                       src={item.image || defaultImage}
@@ -137,14 +119,14 @@ const Cart = () => {
                       {item.description && (
                         <p className="text-gray-600 text-sm">{item.description}</p>
                       )}
-                      <p className="text-gray-600">₹{item.price} × {item.quantity}</p>
-                      <p className="text-gray-600">Total: ₹{item.price * item.quantity}</p>
+                      <p className="text-gray-600">{formatCurrency(item.price)} × {item.quantity}</p>
+                      <p className="text-gray-600">Total: {formatCurrency(item.price * item.quantity)}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => updateQuantity(index, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
                         disabled={item.quantity <= 1}
                       >
@@ -152,14 +134,14 @@ const Cart = () => {
                       </button>
                       <span>{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(index, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="px-2 py-1 bg-gray-200 rounded"
                       >
                         +
                       </button>
                     </div>
                     <button
-                      onClick={() => removeItem(index)}
+                      onClick={() => removeFromCart(item.id)}
                       className="text-red-500 hover:text-red-700"
                     >
                       Remove
