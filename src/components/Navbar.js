@@ -1,88 +1,52 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import logo from "../assets/logo1.png";
-import { FaLayerGroup } from "react-icons/fa";
-import { HiUserGroup } from "react-icons/hi";
-import { GoSearch } from "react-icons/go";
-import { MdLogin, MdLogout } from "react-icons/md";
-import { AiOutlineShoppingCart } from "react-icons/ai";
-import { useCart } from "../context/CartContext";
+// src/components/Navbar.js
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
-  const { cartItems } = useCart();
-  const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    // Get username from localStorage after login
-    const user = localStorage.getItem("username");
-    if (user) setUsername(user);
-  }, []);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { cartTotal } = useCart();
 
   return (
-    <div>
-      <div className="bg-[#0071dc] px-3 py-2 lg:px-8 text-white flex justify-between items-center">
-        {/* Left */}
-        <div className="flex items-center gap-x-3 shrink-0">
-          <Link to="/" className="hover:bg-[#06529a] p-2 rounded-full">
-            <img src={logo} alt="" className="h-12" />
+    <header className="bg-[#6d9eff] shadow-md sticky top-0 z-50">
+      <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="text-2xl font-bold text-gray-800">
+          DollarStore<i className="fas fa-sparkle text-brand-pink ml-1"></i>
+        </Link>
+
+        {/* Primary Navigation */}
+        <div 
+          id="nav-links" 
+          className={`${isMenuOpen ? 'flex flex-col absolute top-16 left-0 right-0 bg-white p-4 shadow-lg' : 'hidden'} lg:flex lg:items-center lg:space-x-8 font-medium`}
+        >
+          <a href="#everything" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">EVERYTHING</a>
+          <a href="#women" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">WOMEN</a>
+          <a href="#men" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">MEN</a>
+          <a href="#accessories" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">ACCESSORIES</a>
+          <a href="#grocery" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">GROCERIES</a>
+        </div>
+
+        {/* Right Side Icons & Links */}
+        <div className="flex items-center space-x-5">
+          <Link to="/about" className="hidden md:block text-sm font-medium text-gray-600 hover:text-brand-pink">ABOUT</Link>
+          <Link to="/contact" className="hidden md:block text-sm font-medium text-gray-600 hover:text-brand-pink">CONTACT US</Link>
+          <span className="text-sm font-bold text-gray-800">₹{cartTotal.toFixed(2)}</span>
+          <Link to="/cart" className="text-gray-600 hover:text-brand-pink">
+            <i className="fas fa-shopping-cart fa-lg"></i>
           </Link>
-
-          <div className="md:flex items-center gap-2 hidden hover:bg-[#06529a] p-3 rounded-full">
-            <FaLayerGroup className="text-[17px]" />
-            <p className="text-[16px] font-semibold">Sections</p>
-          </div>
-          <div className="md:flex hidden items-center gap-2 hover:bg-[#06529a] p-3 rounded-full">
-            <HiUserGroup className="text-[20px]" />
-            <p className="text-[16px] font-semibold">Partners</p>
-          </div>
-        </div>
-
-        {/* Middle */}
-        <div className="hidden relative lg:flex items-center flex-1 mx-6">
-          <input
-            type="search"
-            className="rounded-full py-1.5 px-4 outline-0 flex-1 text-black"
-            placeholder="       Search products..."
-          />
-          <div className="absolute bg-[#ffc220] p-1.5 rounded-full left-1.5">
-            <GoSearch className="text-black" />
-          </div>
-        </div>
-
-        {/* Right */}
-        <div className="flex items-center gap-x-2">
-          <div className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full">
-            <MdLogin className="text-[17px] rotate-90" />
-            <p className="text-[16px] font-semibold">Register</p>
-          </div>
-
-          {username ? (
-            <div className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full whitespace-nowrap">
-              <MdLogout className="text-[20px] -rotate-90" />
-              <p className="text-[16px] font-semibold">Welcome {username}</p>
-            </div>
-          ) : (
-            <Link to="/login" className="flex items-center gap-2 hover:bg-[#06529a] p-3 rounded-full whitespace-nowrap">
-              <MdLogout className="text-[20px] -rotate-90" />
-              <p className="text-[16px] font-semibold">Sign in</p>
-            </Link>
-          )}
-
-          {/* Cart with badge */}
-          <Link to="/cart" className="relative hover:bg-[#06529a] p-3 rounded-full flex items-center gap-2">
-            <AiOutlineShoppingCart className="text-[20px]" />
-            <span className="text-[16px] font-semibold">Cart</span>
-            {totalQty > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                {totalQty}
-              </span>
-            )}
+          <Link to="/profile" className="text-gray-600 hover:text-brand-pink">
+            <i className="fas fa-user-circle fa-lg"></i>
           </Link>
+          <button 
+            className="lg:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'} fa-lg text-gray-600`}></i>
+          </button>
         </div>
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 };
 

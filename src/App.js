@@ -8,9 +8,11 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import Deals from './components/Deals';
+// Import the new Home component
+import Home from './components/Home'; // ✅ Add this
+
+// Other existing imports
 import Footer from './components/Footer';
-import Hero from './components/Hero';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import Login from './components/login';
@@ -58,7 +60,7 @@ const AppContent = () => {
   }, [location]);
 
   return (
-    <div className="bg-[#e6f1fc] min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#FEF8F8]">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -85,10 +87,7 @@ const AppContent = () => {
             path="/"
             element={
               <ProtectedRoute>
-                <>
-                  <Hero />
-                  <Deals />
-                </>
+                <Home /> {/* ✅ Replace the Hero and Deals with the new Home component */}
               </ProtectedRoute>
             }
           />
