@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
-  const { cartTotal, addToCart } = useCart();
+  const { addToCart } = useCart();
 
   // Add to cart handler
   const handleAddToCart = (product) => {

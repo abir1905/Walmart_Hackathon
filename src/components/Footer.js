@@ -20,30 +20,30 @@ const Footer = () => {
         <div>
           <h5 className="font-bold text-lg mb-4">For Her</h5>
           <ul className="space-y-2 text-gray-400">
-            <li><a href="#women" className="hover:text-white">Women Jeans</a></li>
-            <li><a href="#women" className="hover:text-white">Tops and Shirts</a></li>
-            <li><a href="#women" className="hover:text-white">Women Jackets</a></li>
-            <li><a href="#women" className="hover:text-white">Heels and Flats</a></li>
-            <li><a href="#women" className="hover:text-white">Women Accessories</a></li>
+            <li><Link to="/#women" className="hover:text-white">Women Jeans</Link></li>
+            <li><Link to="/#women" className="hover:text-white">Tops and Shirts</Link></li>
+            <li><Link to="/#women" className="hover:text-white">Women Jackets</Link></li>
+            <li><Link to="/#women" className="hover:text-white">Heels and Flats</Link></li>
+            <li><Link to="/#women" className="hover:text-white">Women Accessories</Link></li>
           </ul>
         </div>
         
         <div>
           <h5 className="font-bold text-lg mb-4">For Him</h5>
           <ul className="space-y-2 text-gray-400">
-            <li><a href="#men" className="hover:text-white">Men Jeans</a></li>
-            <li><a href="#men" className="hover:text-white">Men Shirts</a></li>
-            <li><a href="#men" className="hover:text-white">Men Shoes</a></li>
-            <li><a href="#men" className="hover:text-white">Men Accessories</a></li>
-            <li><a href="#men" className="hover:text-white">Men Jackets</a></li>
+            <li><Link to="/#men" className="hover:text-white">Men Jeans</Link></li>
+            <li><Link to="/#men" className="hover:text-white">Men Shirts</Link></li>
+            <li><Link to="/#men" className="hover:text-white">Men Shoes</Link></li>
+            <li><Link to="/#men" className="hover:text-white">Men Accessories</Link></li>
+            <li><Link to="/#men" className="hover:text-white">Men Jackets</Link></li>
           </ul>
         </div>
         
         <div>
           <h5 className="font-bold text-lg mb-4">Get Our App</h5>
-          <a href="#">
+          <button className="bg-transparent border-0 p-0">
             <img src="https://placehold.co/180x54/333333/FFFFFF?text=GET+IT+ON+Google+Play" alt="Google Play Store" className="rounded" />
-          </a>
+          </button>
         </div>
       </div>
       <div className="bg-gray-900 py-4 text-center text-gray-500 text-sm">
