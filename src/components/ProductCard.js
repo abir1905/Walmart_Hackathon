@@ -1,4 +1,3 @@
-// src/components/ProductCard.js
 import React from 'react';
 import { useCart } from '../context/CartContext';
 
@@ -6,40 +5,57 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
   const handleAdd = () => {
-    const numericPrice = typeof product.price === 'string' 
-      ? parseFloat(product.price.replace("₹", "").replace("$", "").replace(",", "")) 
-      : product.price;
-
     addToCart({
       ...product,
-      price: numericPrice,
       quantity: 1
     });
   };
 
   return (
-    <div className="product-card group">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
       <div className="relative">
         <img 
           src={product.image} 
-          alt={product.title} 
-          className="w-full h-64 object-cover"
+          alt={product.name} 
+          className="w-full h-56 object-cover"
         />
+        {product.isSale && (
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+            SALE
+          </span>
+        )}
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-lg">{product.title}</h3>
-        <p className="text-sm text-gray-500 mb-2">{product.category}</p>
-        <p className="font-bold text-gray-800">{product.price}</p>
-        <div className="text-yellow-400 mt-1">
-          {[...Array(5)].map((_, i) => (
-            <i key={i} className="fas fa-star"></i>
-          ))}
+        <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-gray-500">{product.category || product.type}</p>
+          {product.brand && (
+            <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+              {product.brand}
+            </span>
+          )}
         </div>
+        
+        <div className="flex items-center justify-between mt-2">
+          <div>
+            <p className="font-bold text-gray-800">{product.displayPrice}</p>
+            {product.originalPrice && (
+              <p className="text-sm text-gray-500 line-through">{product.displayOriginalPrice}</p>
+            )}
+          </div>
+          
+          <div className="text-yellow-400">
+            {[...Array(5)].map((_, i) => (
+              <i key={i} className="fas fa-star text-sm"></i>
+            ))}
+          </div>
+        </div>
+        
         <button
           onClick={handleAdd}
-          className="mt-4 bg-brand-pink text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+          className="mt-4 w-full bg-brand-pink text-white py-2 rounded-lg hover:opacity-90 transition-opacity"
         >
-          Add
+          Add to Cart
         </button>
       </div>
     </div>

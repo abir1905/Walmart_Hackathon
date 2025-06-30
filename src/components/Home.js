@@ -8,16 +8,19 @@ const Home = () => {
 
   // Add to cart handler
   const handleAddToCart = (product) => {
-    const numericPrice = typeof product.price === 'string' 
-      ? parseFloat(product.price.replace("₹", "").replace(",", "")) 
-      : product.price;
-    
-    addToCart({
-      ...product,
-      price: numericPrice,
-      quantity: 1
-    });
-  };
+  const numericPrice = typeof product.price === 'string' 
+    ? parseFloat(product.price.replace("₹", "").replace(",", "")) 
+    : product.price;
+  
+  addToCart({
+    ...product,
+    name: product.title,  // Use title as name
+    description: product.description || product.category || '',  // Add description
+    price: numericPrice,
+    quantity: 1
+  });
+};
+
 
   // Scroll spy functionality
   useEffect(() => {

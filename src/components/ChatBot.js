@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaMicrophone, FaTimes } from 'react-icons/fa';
-import { products } from '../assets/images';
+import { allProducts } from '../data/products';
+import { getAllProductTypes, getProductsByType } from '../data/products';
 
 const ChatBot = () => {
   const { addToCart } = useCart();
@@ -13,10 +14,40 @@ const ChatBot = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [productType, setProductType] = useState('');
+  const [, setQuantity] = useState(1);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
   const speechSynthesisRef = useRef(null);
+
+  const sizeMap = useMemo(() => ({
+    'xs': ['xs', 'extra small'],
+    's': ['s', 'small'],
+    'm': ['m', 'medium'],
+    'l': ['l', 'large'],
+    'xl': ['xl', 'extra large'],
+    'xxl': ['xxl', 'double extra large']
+  }) , []);
+
+  // Helper functions
+  const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  };
+
+  const getBrandsForType = (type) => {
+    const allItems = Object.values(allProducts).flat();
+    const brands = new Set();
+    
+    allItems.forEach(product => {
+      if (product.type === type) {
+        brands.add(product.brand);
+      }
+    });
+    
+    return Array.from(brands);
+  };
 
   // Clean user input
   const cleanUserInput = (text) => {
@@ -49,15 +80,24 @@ const ChatBot = () => {
   }, []);
 
   // Handle adding to cart and resetting
-  const addToCartAndReset = useCallback((product, size, color, quantity) => {
+  const addToCartAndReset = useCallback((product, size, color, quantity, brand) => {
     if (product) {
+      const brandText = brand ? `Brand: ${brand}` : '';
+      const description = [
+        size ? `Size: ${size}` : '',
+        color ? `Color: ${color}` : '',
+        brandText
+      ].filter(Boolean).join(' | ');
+      
       const cartItem = {
-        id: `${product.id}-${size || 'na'}-${color || 'na'}`,
+        id: `${product.id}-${size || 'na'}-${color || 'na'}-${brand || 'na'}`,
         name: product.name,
-        description: `${size ? `Size: ${size}` : ''} ${color ? `Color: ${color}` : ''}`.trim(),
+        description: description,
         price: product.price,
+        displayPrice: product.displayPrice,
         image: product.image,
-        quantity: quantity
+        quantity: quantity,
+        brand: brand || product.brand
       };
       
       addToCart(cartItem);
@@ -69,7 +109,30 @@ const ChatBot = () => {
     setSelectedProduct(null);
     setSelectedSize('');
     setSelectedColor('');
+    setSelectedBrand('');
+    setProductType('');
+    setQuantity(1);
   }, [addToCart, addBotMessage]);
+
+  // Helper function to proceed through selection steps
+  const proceedToNextSelectionStep = useCallback((product) => {
+    if (product.sizes.length > 1) {
+      setActiveStep(1);
+      addBotMessage(`Great choice! What size do you need for the ${product.name}? Available sizes: ${product.sizes.join(', ')}`);
+    } else if (product.colors.length > 1) {
+      setActiveStep(2);
+      addBotMessage(`Great choice! What color would you like for the ${product.name}? Available colors: ${product.colors.join(', ')}`);
+    } else {
+      const brands = getBrandsForType(product.type);
+      if (brands.length > 0) {
+        setActiveStep(4);
+        addBotMessage(`Great choice! Would you like a specific brand? Available brands for ${product.type}: ${brands.join(', ')}`);
+      } else {
+        setActiveStep(3);
+        addBotMessage(`Great choice! How many ${product.name} would you like?`);
+      }
+    }
+  }, [addBotMessage]);
 
   // Handle user responses
   const handleUserResponse = useCallback((response) => {
@@ -77,43 +140,102 @@ const ChatBot = () => {
     addUserMessage(cleanedResponse);
     stopListening();
 
-    // Process the user response based on the current step
     switch (activeStep) {
-      case 0: // Initial state - product selection
+      case 0: // Initial state
         if (cleanedResponse.toLowerCase().includes('add') || 
             cleanedResponse.toLowerCase().includes('cart') || 
             cleanedResponse.toLowerCase().includes('want') ||
             cleanedResponse.toLowerCase().includes('buy')) {
-          const matchedProduct = products.find(product => 
-            cleanedResponse.toLowerCase().includes(product.name.toLowerCase())
+          
+          const allItems = Object.values(allProducts).flat();
+          const productTypes = getAllProductTypes();
+          const mentionedType = productTypes.find(type => 
+            cleanedResponse.toLowerCase().includes(type.toLowerCase())
           );
           
-          if (matchedProduct) {
-            setSelectedProduct(matchedProduct);
+          if (mentionedType) {
+            setProductType(mentionedType);
+            const typeProducts = getProductsByType(mentionedType);
             
-            if (matchedProduct.sizes.length > 1) {
-              setActiveStep(1);
-              addBotMessage(`Great choice! What size do you need for the ${matchedProduct.name}? Available sizes: ${matchedProduct.sizes.join(', ')}`);
-            } else if (matchedProduct.colors.length > 1) {
-              setActiveStep(2);
-              addBotMessage(`Great choice! What color would you like for the ${matchedProduct.name}? Available colors: ${matchedProduct.colors.join(', ')}`);
+            if (typeProducts.length > 1) {
+              setActiveStep(0.5);
+              addBotMessage(`I found several ${mentionedType} options. Which one would you like? ${typeProducts.map(p => p.name).join(', ')}`);
+            } else if (typeProducts.length === 1) {
+              setSelectedProduct(typeProducts[0]);
+              proceedToNextSelectionStep(typeProducts[0]);
             } else {
-              setActiveStep(3);
-              addBotMessage(`Great choice! How many ${matchedProduct.name} would you like?`);
+              addBotMessage(`Sorry, we don't have ${mentionedType} in stock right now.`);
             }
           } else {
-            addBotMessage("I'm not sure which item you mean. Here are some products: Costume, Jacket, Photo Frame, Wall Art, Laptop, Headphones. Could you specify?");
+            // Improved product matching with whole word search
+            const matchedProduct = allItems.find(product => {
+              const escapedName = escapeRegExp(product.name.toLowerCase());
+              const pattern = new RegExp(`\\b${escapedName}\\b`);
+              return pattern.test(cleanedResponse.toLowerCase());
+            });
+            
+            if (matchedProduct) {
+              setSelectedProduct(matchedProduct);
+              proceedToNextSelectionStep(matchedProduct);
+            } else {
+              addBotMessage("I'm not sure which item you mean. Could you specify?");
+            }
           }
         } else {
-          addBotMessage("I can help you add items to your cart. Just say something like 'Add jacket to cart' or 'I want the laptop'.");
+          addBotMessage("I can help you add items to your cart. Just say something like 'Add jeans to cart' or 'I want the laptop'.");
+        }
+        break;
+      
+      case 0.5: // Product selection from type
+        const typeProducts = getProductsByType(productType);
+        const productMatch = typeProducts.find(product => 
+          cleanedResponse.toLowerCase().includes(product.name.toLowerCase())
+        );
+        
+        if (productMatch) {
+          setSelectedProduct(productMatch);
+          proceedToNextSelectionStep(productMatch);
+        } else {
+          addBotMessage(`I didn't recognize that product. Available options are: ${typeProducts.map(p => p.name).join(', ')}. Could you repeat?`);
         }
         break;
       
       case 1: // Size selection
-        const sizeMatch = selectedProduct.sizes.find(size => 
-          cleanedResponse.toLowerCase().includes(size.toLowerCase())
-        );
-        
+        const cleanedLower = cleanedResponse.toLowerCase();
+        let sizeMatch = null;
+
+        // 1. Check for exact size match with word boundaries
+        const exactMatch = selectedProduct.sizes.find(size => {
+          const sizePattern = new RegExp(`\\b${escapeRegExp(size.toLowerCase())}\\b`);
+          return sizePattern.test(cleanedLower);
+        });
+
+        if (exactMatch) {
+          sizeMatch = exactMatch;
+        } 
+        // 2. Check size mappings (e.g., "medium" -> "M")
+        else {
+          Object.entries(sizeMap).some(([sizeCode, keywords]) => {
+            const hasKeyword = keywords.some(keyword => 
+              new RegExp(`\\b${escapeRegExp(keyword)}\\b`).test(cleanedLower)
+            );
+            
+            if (hasKeyword && selectedProduct.sizes.includes(sizeCode.toUpperCase())) {
+              sizeMatch = sizeCode.toUpperCase();
+              return true; // break loop
+            }
+            return false;
+          });
+        }
+
+        // 3. Handle random selection requests
+        if (!sizeMatch && (cleanedLower.includes('any') || 
+            cleanedLower.includes('random') ||
+            cleanedLower.includes('surprise'))) {
+          const randomSize = selectedProduct.sizes[Math.floor(Math.random() * selectedProduct.sizes.length)];
+          sizeMatch = randomSize;
+        }
+
         if (sizeMatch) {
           setSelectedSize(sizeMatch);
           
@@ -121,21 +243,14 @@ const ChatBot = () => {
             setActiveStep(2);
             addBotMessage(`Perfect, size ${sizeMatch}. What color would you like? Available colors: ${selectedProduct.colors.join(', ')}`);
           } else {
-            setActiveStep(3);
-            addBotMessage(`Perfect, size ${sizeMatch}. How many ${selectedProduct.name} would you like?`);
-          }
-        } else if (cleanedResponse.toLowerCase().includes('any') || 
-                   cleanedResponse.toLowerCase().includes('random') ||
-                   cleanedResponse.toLowerCase().includes('surprise')) {
-          const randomSize = selectedProduct.sizes[Math.floor(Math.random() * selectedProduct.sizes.length)];
-          setSelectedSize(randomSize);
-          
-          if (selectedProduct.colors.length > 1) {
-            setActiveStep(2);
-            addBotMessage(`I'll pick ${randomSize} for you. What color would you like? Available colors: ${selectedProduct.colors.join(', ')}`);
-          } else {
-            setActiveStep(3);
-            addBotMessage(`I'll pick ${randomSize} for you. How many ${selectedProduct.name} would you like?`);
+            const brands = getBrandsForType(selectedProduct.type);
+            if (brands.length > 0) {
+              setActiveStep(4);
+              addBotMessage(`Perfect, size ${sizeMatch}. Would you like a specific brand? Available brands for ${selectedProduct.type}: ${brands.join(', ')}`);
+            } else {
+              setActiveStep(3);
+              addBotMessage(`Perfect, size ${sizeMatch}. How many ${selectedProduct.name} would you like?`);
+            }
           }
         } else {
           addBotMessage(`I didn't recognize that size. Available options are: ${selectedProduct.sizes.join(', ')}. Could you repeat?`);
@@ -149,26 +264,40 @@ const ChatBot = () => {
         
         if (colorMatch) {
           setSelectedColor(colorMatch);
-          setActiveStep(3);
-          addBotMessage(`Excellent choice! How many ${selectedProduct.name} would you like?`);
+          
+          const brands = getBrandsForType(selectedProduct.type);
+          if (brands.length > 0) {
+            setActiveStep(4);
+            addBotMessage(`Excellent choice! Would you like a specific brand? Available brands for ${selectedProduct.type}: ${brands.join(', ')}`);
+          } else {
+            setActiveStep(3);
+            addBotMessage(`Excellent choice! How many ${selectedProduct.name} would you like?`);
+          }
         } else if (cleanedResponse.toLowerCase().includes('any') || 
                    cleanedResponse.toLowerCase().includes('random') ||
                    cleanedResponse.toLowerCase().includes('surprise')) {
           const randomColor = selectedProduct.colors[Math.floor(Math.random() * selectedProduct.colors.length)];
           setSelectedColor(randomColor);
-          setActiveStep(3);
-          addBotMessage(`I'll pick a ${randomColor} one for you. How many ${selectedProduct.name} would you like?`);
+          
+          const brands = getBrandsForType(selectedProduct.type);
+          if (brands.length > 0) {
+            setActiveStep(4);
+            addBotMessage(`I'll pick a ${randomColor} one for you. Would you like a specific brand? Available brands for ${selectedProduct.type}: ${brands.join(', ')}`);
+          } else {
+            setActiveStep(3);
+            addBotMessage(`I'll pick a ${randomColor} one for you. How many ${selectedProduct.name} would you like?`);
+          }
         } else {
           addBotMessage(`I didn't recognize that color. Available options are: ${selectedProduct.colors.join(', ')}. Could you repeat?`);
         }
         break;
       
       case 3: // Quantity selection
-        let quantity = 1;
+        let qty = 1;
         const quantityMatch = cleanedResponse.match(/\d+/);
         
         if (quantityMatch) {
-          quantity = parseInt(quantityMatch[0]);
+          qty = parseInt(quantityMatch[0]);
         } else {
           const quantityMap = {
             'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
@@ -180,24 +309,52 @@ const ChatBot = () => {
           );
           
           if (quantityWord) {
-            quantity = quantityMap[quantityWord];
+            qty = quantityMap[quantityWord];
           }
         }
         
-        if (quantity > 0 && quantity <= 10) {
-          setActiveStep(4);
-          addBotMessage(`Adding ${quantity} ${quantity > 1 ? 'items' : 'item'} to your cart.`);
+        if (qty > 0 && qty <= 10) {
+          setQuantity(qty);
+          setActiveStep(5);
+          addBotMessage(`Adding ${qty} ${qty > 1 ? 'items' : 'item'} to your cart.`);
           
           setTimeout(() => {
             addToCartAndReset(
               selectedProduct,
               selectedSize,
               selectedColor,
-              quantity
+              qty,
+              selectedBrand
             );
           }, 1500);
         } else {
           addBotMessage("Please enter a quantity between 1 and 10.");
+        }
+        break;
+      
+      case 4: // Brand selection
+        const brands = getBrandsForType(selectedProduct.type);
+        const brandMatch = brands.find(brand => 
+          cleanedResponse.toLowerCase().includes(brand.toLowerCase())
+        );
+        
+        if (brandMatch) {
+          setSelectedBrand(brandMatch);
+          setActiveStep(3);
+          addBotMessage(`Great choice! How many ${selectedProduct.name} would you like?`);
+        } else if (cleanedResponse.toLowerCase().includes('any') || 
+                   cleanedResponse.toLowerCase().includes('random') ||
+                   cleanedResponse.toLowerCase().includes('surprise')) {
+          const randomBrand = brands[Math.floor(Math.random() * brands.length)];
+          setSelectedBrand(randomBrand);
+          setActiveStep(3);
+          addBotMessage(`I'll pick ${randomBrand} for you. How many ${selectedProduct.name} would you like?`);
+        } else if (cleanedResponse.toLowerCase().includes('no') || 
+                   cleanedResponse.toLowerCase().includes('skip')) {
+          setActiveStep(3);
+          addBotMessage(`Okay, I'll add without a specific brand. How many ${selectedProduct.name} would you like?`);
+        } else {
+          addBotMessage(`I didn't recognize that brand. Available options for ${selectedProduct.type} are: ${brands.join(', ')}. Could you repeat?`);
         }
         break;
       
@@ -210,9 +367,13 @@ const ChatBot = () => {
     selectedProduct,
     selectedColor,
     selectedSize, 
+    productType,
+    sizeMap,
+    selectedBrand,
     addBotMessage, 
     addUserMessage, 
-    addToCartAndReset
+    addToCartAndReset,
+    proceedToNextSelectionStep
   ]);
 
   // Initialize speech recognition
@@ -316,6 +477,12 @@ const ChatBot = () => {
     } else {
       setMessages([]);
       setActiveStep(0);
+      setSelectedProduct(null);
+      setSelectedSize('');
+      setSelectedColor('');
+      setSelectedBrand('');
+      setProductType('');
+      setQuantity(1);
     }
   };
 

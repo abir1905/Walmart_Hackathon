@@ -103,26 +103,22 @@ const Cart = () => {
           ) : (
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={item.image || defaultImage}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = defaultImage;
-                      }}
-                    />
-                    <div>
-                      <h3 className="font-medium">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-gray-600 text-sm">{item.description}</p>
-                      )}
-                      <p className="text-gray-600">{formatCurrency(item.price)} × {item.quantity}</p>
-                      <p className="text-gray-600">Total: {formatCurrency(item.price * item.quantity)}</p>
-                    </div>
-                  </div>
+  <div key={item.id} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
+    <div className="flex items-center space-x-4">
+      <img
+        src={item.image || defaultImage}
+        alt={item.name}
+        className="w-16 h-16 object-cover rounded"
+      />
+      <div>
+        <h3 className="font-medium">{item.name}</h3>
+        {item.description && (  // Add this condition
+          <p className="text-gray-600 text-sm">{item.description}</p>
+        )}
+        <p className="text-gray-600">{formatCurrency(item.price)} × {item.quantity}</p>
+        <p className="text-gray-600">Total: {formatCurrency(item.price * item.quantity)}</p>
+      </div>
+    </div>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <button

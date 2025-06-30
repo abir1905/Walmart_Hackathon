@@ -9,66 +9,58 @@ export const CartProvider = ({ children }) => {
   const [walletBalance, setWalletBalance] = useState(50000);
   const [cartTotal, setCartTotal] = useState(0);
 
-  // Safe calculation of cart total
+  // Calculate cart total
   useEffect(() => {
     const total = cartItems.reduce((sum, item) => {
-      const price = parseFloat(item.price);
-      const quantity = parseInt(item.quantity, 10);
-      
-      if (isNaN(price) || isNaN(quantity)) return sum;
-      
-      return sum + price * quantity;
+      return sum + (item.price * item.quantity);
     }, 0);
-    
     setCartTotal(total);
   }, [cartItems]);
 
   const addToCart = (product) => {
-    // Ensure numeric values
-    // In addToCart function
-    const numericProduct = {
-      ...product,
-      price: parseFloat(product.price),
-      quantity: parseInt(product.quantity, 10)
-    };
-
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(item => item.id === numericProduct.id);
-      
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.id === numericProduct.id
-            ? { 
-                ...item, 
-                quantity: item.quantity + numericProduct.quantity 
-              }
-            : item
-        );
-      } else {
-        return [...prevItems, numericProduct];
-      }
-    });
+  const newItem = {
+    ...product,
+    quantity: product.quantity || 1
   };
+
+  setCartItems(prevItems => {
+    const existingIndex = prevItems.findIndex(item => item.id === newItem.id);
+    
+    if (existingIndex >= 0) {
+      const updatedItems = [...prevItems];
+      updatedItems[existingIndex].quantity += newItem.quantity;
+      return updatedItems;
+    } else {
+      return [...prevItems, {
+        ...newItem,
+        // Preserve all properties including description
+        id: newItem.id,
+        name: newItem.name,
+        description: newItem.description,
+        price: newItem.price,
+        image: newItem.image
+      }];
+    }
+  });
+};
 
   const removeFromCart = (id) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
   const updateQuantity = (id, newQuantity) => {
-    const quantity = parseInt(newQuantity, 10);
+    const quantity = parseInt(newQuantity, 10) || 0;
     
-    // Validate quantity
-    if (isNaN(quantity)) return;
+    if (quantity <= 0) {
+      removeFromCart(id);
+      return;
+    }
     
-    setCartItems(prevItems => {
-      if (quantity < 1) {
-        return prevItems.filter(item => item.id !== id);
-      }
-      
-      return prevItems.map(item =>
+    setCartItems(prevItems => 
+      prevItems.map(item => 
         item.id === id ? { ...item, quantity } : item
-      );
-    });
+      )
+    );
   };
 
   const checkout = () => {
@@ -90,12 +82,12 @@ export const CartProvider = ({ children }) => {
       value={{
         cartItems,
         walletBalance,
-        cartTotal,  // Only expose the value, not setter
+        cartTotal,
         addToCart,
         removeFromCart,
         updateQuantity,
         clearCart,
-        checkout,  // Provide checkout function
+        checkout,
         setWalletBalance
       }}
     >
