@@ -4,6 +4,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto"); // ADD THIS LINE
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 // Session Serialization
 passport.serializeUser((user, done) => {
@@ -59,6 +60,51 @@ passport.use(
         done(null, newUser);
       } catch (err) {
         console.error("Google authentication error:", err);
+        done(err, null);
+      }
+    }
+  )
+);
+
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      callbackURL: "/auth/facebook/callback",
+      profileFields: ['id', 'emails', 'name', 'displayName']
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        const email = profile.emails?.[0]?.value;
+        if (!email) {
+          return done(null, false, { message: "Email not provided by Facebook" });
+        }
+
+        // Check for existing user by email
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+          // Update Facebook ID if missing
+          if (!existingUser.facebookId) {
+            existingUser.facebookId = profile.id;
+            await existingUser.save();
+          }
+          return done(null, existingUser);
+        }
+
+        // Create new user
+        const newUser = new User({
+          facebookId: profile.id,
+          email: email,
+          name: profile.displayName || `${profile.name?.givenName} ${profile.name?.familyName}`,
+          password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 12)
+        });
+
+        await newUser.save();
+        done(null, newUser);
+      } catch (err) {
+        console.error("Facebook authentication error:", err);
         done(err, null);
       }
     }

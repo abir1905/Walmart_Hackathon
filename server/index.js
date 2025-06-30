@@ -123,6 +123,18 @@ app.get("/auth/google/callback",
   })
 );
 
+
+// Add Facebook routes after Google routes
+app.get("/auth/facebook", passport.authenticate("facebook", { scope: ['email'] }));
+
+app.get("/auth/facebook/callback",
+  passport.authenticate("facebook", {
+    successRedirect: "http://localhost:3000/",
+    failureRedirect: "http://localhost:3000/login"
+  })
+);
+
+
 // ---------------------- Auth Utility Routes -----------------------
 app.get("/auth/user", (req, res) => {
   if (req.user) res.json(req.user);
