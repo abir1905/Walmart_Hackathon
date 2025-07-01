@@ -18,28 +18,27 @@ const AddressForm = ({ onAddressChange }) => {
   const [formErrors, setFormErrors] = useState({});
 
   React.useEffect(() => {
-    if (coords) {
-      reverseGeocode(coords.lat, coords.lng)
-        .then(result => {
-          const addressComponents = parseAddressComponents(result.address_components);
-          const newFormData = {
-            ...formData,
-            area: addressComponents.route || '',
-            city: addressComponents.locality || addressComponents.city || '',
-            state: addressComponents.state || '',
-            pincode: addressComponents.postal_code || '',
-            locality: addressComponents.neighborhood || addressComponents.sublocality || '',
-            fullAddress: result.formatted_address
-          };
-          
-          setFormData(newFormData);
-        })
-        .catch(err => {
-          console.error('Geocoding error:', err);
-          setFormErrors({ general: err.message || 'Failed to fetch address details' });
-        });
-    }
-  }, [coords]);
+  if (coords) {
+    reverseGeocode(coords.lat, coords.lng)
+      .then(result => {
+        const addressComponents = parseAddressComponents(result.address_components);
+        // Use functional update to avoid formData dependency
+        setFormData(prev => ({
+          ...prev,
+          area: addressComponents.route || '',
+          city: addressComponents.locality || addressComponents.city || '',
+          state: addressComponents.state || '',
+          pincode: addressComponents.postal_code || '',
+          locality: addressComponents.neighborhood || addressComponents.sublocality || '',
+          fullAddress: result.formatted_address
+        }));
+      })
+      .catch(err => {
+        console.error('Geocoding error:', err);
+        setFormErrors(prev => ({ ...prev, general: err.message || 'Failed to fetch address details' }));
+      });
+  }
+}, [coords]);
 
   const parseAddressComponents = (components) => {
     const address = {

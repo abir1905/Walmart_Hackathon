@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState,  } from 'react';
 
 const useGeolocation = () => {
   const [coords, setCoords] = useState(null);
