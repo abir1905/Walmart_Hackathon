@@ -1,8 +1,10 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
+import { useLocation } from "../context/LocationContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import defaultImage from "../assets/defaultImage.png";
+import AddressForm from "./AddressForm";
 
 const Cart = () => {
   const {
@@ -14,8 +16,10 @@ const Cart = () => {
     checkout,
     setWalletBalance
   } = useCart();
-
+  
+  const { userAddress, setUserAddress } = useLocation();
   const [rechargeAmount, setRechargeAmount] = React.useState(10000);
+  const [showAddressForm, setShowAddressForm] = React.useState(!userAddress);
 
   const formatCurrency = (value) => {
     const num = parseFloat(value);
@@ -23,6 +27,11 @@ const Cart = () => {
   };
 
   const handlePayment = () => {
+    if (!userAddress) {
+      toast.error("Please add a delivery address");
+      return;
+    }
+    
     const result = checkout();
     if (result.success) {
       toast.success("Payment successful! Items will be delivered soon.");
@@ -96,59 +105,124 @@ const Cart = () => {
 
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Cart Items</h2>
-          {cartItems.length === 0 ? (
-            <p>Your cart is empty</p>
-          ) : (
-            <div className="space-y-4">
-              {cartItems.map((item) => (
-  <div key={item.id} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
-    <div className="flex items-center space-x-4">
-      <img
-        src={item.image || defaultImage}
-        alt={item.name}
-        className="w-16 h-16 object-cover rounded"
-      />
-      <div>
-        <h3 className="font-medium">{item.name}</h3>
-        {item.description && (  // Add this condition
-          <p className="text-gray-600 text-sm">{item.description}</p>
-        )}
-        <p className="text-gray-600">{formatCurrency(item.price)} × {item.quantity}</p>
-        <p className="text-gray-600">Total: {formatCurrency(item.price * item.quantity)}</p>
-      </div>
-    </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
+        <div className="md:col-span-2">
+          {/* Address Section */}
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 className="text-xl font-semibold mb-4">Delivery Address</h2>
+            
+            {showAddressForm ? (
+              <AddressForm 
+                onAddressChange={(address) => {
+                  if (address) {
+                    setUserAddress(address);
+                    setShowAddressForm(false);
+                  } else {
+                    setShowAddressForm(false);
+                  }
+                }} 
+              />
+            ) : userAddress ? (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium">{userAddress.name}</p>
+                    <p className="text-gray-700 mt-1">{userAddress.fullAddress}</p>
+                    <p className="text-gray-600 mt-1">
+                      <span className="font-medium">Phone:</span> {userAddress.phone}
+                    </p>
+                    {userAddress.landmark && (
+                      <p className="text-gray-600 mt-1">
+                        <span className="font-medium">Landmark:</span> {userAddress.landmark}
+                      </p>
+                    )}
+                    <p className="text-gray-600 mt-1">
+                      <span className="font-medium">Type:</span> 
+                      {userAddress.addressType === 'home' 
+                        ? ' Home (All day delivery)' 
+                        : ' Work (10 AM - 5 PM)'}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setShowAddressForm(true)}
+                    className="text-blue-500 hover:text-blue-700 font-medium whitespace-nowrap"
+                  >
+                    <i className="fas fa-edit mr-1"></i> Change
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">No delivery address added</p>
+                <button
+                  onClick={() => setShowAddressForm(true)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Add Delivery Address
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Cart Items */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Cart Items</h2>
+            {cartItems.length === 0 ? (
+              <p>Your cart is empty</p>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between border-b pb-4 transition-all duration-300">
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={item.image || defaultImage}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = defaultImage;
+                        }}
+                      />
+                      <div>
+                        <h3 className="font-medium">{item.name}</h3>
+                        {item.description && (
+                          <p className="text-gray-600 text-sm">{item.description}</p>
+                        )}
+                        <p className="text-gray-600">{formatCurrency(item.price)} × {item.quantity}</p>
+                        <p className="text-gray-600">Total: {formatCurrency(item.price * item.quantity)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                          disabled={item.quantity <= 1}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="px-2 py-1 bg-gray-200 rounded"
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
-                        disabled={item.quantity <= 1}
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-500 hover:text-red-700"
                       >
-                        -
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="px-2 py-1 bg-gray-200 rounded"
-                      >
-                        +
+                        Remove
                       </button>
                     </div>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Wallet and Payment Section */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Wallet</h2>
           <div className="mb-4">
@@ -178,14 +252,14 @@ const Cart = () => {
           </div>
           <button
             onClick={handlePayment}
-            disabled={cartItems.length === 0}
+            disabled={cartItems.length === 0 || !userAddress}
             className={`w-full py-3 rounded-lg text-white font-medium ${
-              cartItems.length === 0
-                ? "bg-gray-400"
+              cartItems.length === 0 || !userAddress
+                ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#0071dc] hover:bg-[#06529a]"
             }`}
           >
-            Pay Now
+            {!userAddress ? "Add Address to Pay" : "Pay Now"}
           </button>
         </div>
       </div>

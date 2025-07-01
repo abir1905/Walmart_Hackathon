@@ -1,5 +1,14 @@
 require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
+// Enhanced environment variable debugging
+console.log("Current directory:", __dirname);
+console.log("Environment Variables:");
+console.log(`GOOGLE_MAPS_API_KEY: ${process.env.GOOGLE_MAPS_API_KEY ? '****' + process.env.GOOGLE_MAPS_API_KEY.slice(-4) : 'Not set'}`);
+console.log(`RAZORPAY_KEY_ID: ${process.env.RAZORPAY_KEY_ID ? '****' + process.env.RAZORPAY_KEY_ID.slice(-4) : 'Not set'}`);
+console.log(`RAZORPAY_KEY_SECRET: ${process.env.RAZORPAY_KEY_SECRET ? '****' + process.env.RAZORPAY_KEY_SECRET.slice(-4) : 'Not set'}`);
+console.log(`MONGO_URI: ${process.env.MONGO_URI ? '****' + process.env.MONGO_URI.slice(-20) : 'Not set'}`);
+console.log(`COOKIE_SECRET: ${process.env.COOKIE_SECRET ? '****' + process.env.COOKIE_SECRET.slice(-4) : 'Not set'}`);
+
 const express = require("express");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
@@ -8,9 +17,10 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
+const axios = require("axios");
 
 const User = require("./models/user");
-require("./auth/passport"); // ✅ Google + Local strategies
+require("./auth/passport");
 
 const authRoutes = require("./Routes/auth");
 
@@ -26,7 +36,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false, // true in production with HTTPS
+    secure: false,
     sameSite: "lax",
   }
 }));
@@ -84,12 +94,49 @@ app.post("/verify-payment", (req, res) => {
   }
 });
 
+// ---------------------- Reverse Geocoding Endpoint -----------------------
+app.get("/reverse-geocode", async (req, res) => {
+  const { lat, lng } = req.query;
+  
+  if (!lat || !lng) {
+    return res.status(400).json({ 
+      message: "Latitude and longitude are required" 
+    });
+  }
+
+  // API key verification
+  if (!process.env.GOOGLE_MAPS_API_KEY) {
+    console.error("❌ GOOGLE_MAPS_API_KEY is not set in environment variables");
+    return res.status(500).json({ message: "Server configuration error" });
+  }
+
+  try {
+    const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+    console.log("Geocoding API URL:", apiUrl.replace(process.env.GOOGLE_MAPS_API_KEY, '****'));
+    
+    const response = await axios.get(apiUrl);
+    
+    if (response.data.status !== 'OK') {
+      let errorMessage = response.data.error_message || 'Address not found';
+      console.error("❌ Geocoding API error:", errorMessage);
+      return res.status(400).json({
+        message: errorMessage
+      });
+    }
+    
+    res.json(response.data.results[0]);
+  } catch (err) {
+    console.error('❌ Reverse geocode error:', err);
+    res.status(500).json({ 
+      message: 'Geocoding service error',
+      details: err.message
+    });
+  }
+});
+
 // ---------------------- Local Auth Routes -----------------------
+app.use("/auth", authRoutes);
 
-// Mount the auth route
-app.use("/auth", require("./Routes/auth")); // This enables /auth/manual-login
-
-// Optional logging middleware for debugging
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.originalUrl}`);
   next();
@@ -123,8 +170,7 @@ app.get("/auth/google/callback",
   })
 );
 
-
-// Add Facebook routes after Google routes
+// ---------------------- Facebook Auth Routes -----------------------
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ['email'] }));
 
 app.get("/auth/facebook/callback",
@@ -133,7 +179,6 @@ app.get("/auth/facebook/callback",
     failureRedirect: "http://localhost:3000/login"
   })
 );
-
 
 // ---------------------- Auth Utility Routes -----------------------
 app.get("/auth/user", (req, res) => {
@@ -146,9 +191,6 @@ app.get("/auth/logout", (req, res) => {
     res.redirect("http://localhost:3000/");
   });
 });
-
-// ---------------------- External Route File -----------------------
-// app.use("/auth", authRoutes);
 
 // ---------------------- Start Server -----------------------
 const PORT = process.env.PORT || 5000;

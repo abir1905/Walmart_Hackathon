@@ -8,10 +8,8 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Import the new Home component
-import Home from './components/Home'; // ✅ Add this
-
-// Other existing imports
+// Import components
+import Home from './components/Home';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
@@ -20,6 +18,9 @@ import Signup from './components/signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthLayout from './components/AuthLayout';
 import ChatBot from './components/ChatBot';
+
+// Add LocationProvider context
+import { LocationProvider } from './context/LocationContext';
 
 const AppContent = () => {
   const location = useLocation();
@@ -87,7 +88,7 @@ const AppContent = () => {
             path="/"
             element={
               <ProtectedRoute>
-                <Home /> {/* ✅ Replace the Hero and Deals with the new Home component */}
+                <Home />
               </ProtectedRoute>
             }
           />
@@ -109,9 +110,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <LocationProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </LocationProvider>
   );
 }
 

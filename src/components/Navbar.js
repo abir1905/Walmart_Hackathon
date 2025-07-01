@@ -1,19 +1,74 @@
-// src/components/Navbar.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useLocation } from '../context/LocationContext';
+import AddressForm from './AddressForm';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const { cartTotal } = useCart();
+  const { userAddress, setUserAddress } = useLocation();
+
+  const formatShortAddress = () => {
+    if (!userAddress?.fullAddress) return 'Select Location';
+    
+    const parts = userAddress.fullAddress.split(',');
+    if (parts.length < 2) return userAddress.fullAddress;
+    
+    return `${parts[0]}, ${parts[1]}`;
+  };
 
   return (
     <header className="bg-[#6d9eff] shadow-md sticky top-0 z-50">
+      {/* Address Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Delivery Address</h3>
+              <button 
+                onClick={() => setShowAddressModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <AddressForm 
+              onAddressChange={(address) => {
+                if (address) {
+                  setUserAddress(address);
+                  setShowAddressModal(false);
+                } else {
+                  setShowAddressModal(false);
+                }
+              }} 
+            />
+          </div>
+        </div>
+      )}
+
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-gray-800">
-          DollarStore<i className="fas fa-sparkle text-brand-pink ml-1"></i>
-        </Link>
+        <div className="flex items-center">
+          {/* Logo */}
+          <Link to="/" className="text-2xl font-bold text-gray-800 mr-6">
+            DollarStore<i className="fas fa-sparkle text-brand-pink ml-1"></i>
+          </Link>
+          
+          {/* Location Selector */}
+          <div 
+            className="flex items-center cursor-pointer group"
+            onClick={() => setShowAddressModal(true)}
+          >
+            <i className="fas fa-map-marker-alt text-gray-700 group-hover:text-brand-pink mr-2"></i>
+            <div className="text-sm text-left">
+              <p className="text-gray-500 group-hover:text-brand-pink">Deliver to</p>
+              <p className="font-medium text-gray-800 group-hover:text-brand-pink">
+                {formatShortAddress()}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Primary Navigation */}
         <div 
