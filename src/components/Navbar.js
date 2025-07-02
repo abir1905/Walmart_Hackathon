@@ -13,10 +13,13 @@ const Navbar = () => {
   const formatShortAddress = () => {
     if (!userAddress?.fullAddress) return 'Select Location';
     
-    const parts = userAddress.fullAddress.split(',');
-    if (parts.length < 2) return userAddress.fullAddress;
-    
-    return `${parts[0]}, ${parts[1]}`;
+    // Abbreviate the address as requested
+    const address = `${userAddress.area}, ${userAddress.locality}`;
+    const maxLength = 25; // Adjust length as needed
+    if (address.length > maxLength) {
+      return address.substring(0, maxLength).trim() + '...';
+    }
+    return address;
   };
 
   return (
@@ -49,41 +52,52 @@ const Navbar = () => {
       )}
 
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center">
-          {/* Logo */}
+        {/* Left Section (Logo & Location) */}
+        <div className="flex items-center lg:flex-1">
           <Link to="/" className="text-2xl font-bold text-gray-800 mr-6">
             DollarStore<i className="fas fa-sparkle text-brand-pink ml-1"></i>
           </Link>
           
-          {/* Location Selector */}
           <div 
-            className="flex items-center cursor-pointer group"
+            className="hidden lg:flex items-center cursor-pointer group"
             onClick={() => setShowAddressModal(true)}
           >
             <i className="fas fa-map-marker-alt text-gray-700 group-hover:text-brand-pink mr-2"></i>
-            <div className="text-sm text-left">
+            <div className="text-sm text-left overflow-hidden">
               <p className="text-gray-500 group-hover:text-brand-pink">Deliver to</p>
-              <p className="font-medium text-gray-800 group-hover:text-brand-pink">
+              <p 
+                className="font-medium text-gray-800 group-hover:text-brand-pink truncate"
+                title={userAddress?.fullAddress || 'Select a location'}
+              >
                 {formatShortAddress()}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Primary Navigation */}
-        <div 
-          id="nav-links" 
-          className={`${isMenuOpen ? 'flex flex-col absolute top-16 left-0 right-0 bg-white p-4 shadow-lg' : 'hidden'} lg:flex lg:items-center lg:space-x-8 font-medium`}
-        >
-          <a href="#everything" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">EVERYTHING</a>
-          <a href="#women" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">WOMEN</a>
-          <a href="#men" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">MEN</a>
-          <a href="#accessories" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">ACCESSORIES</a>
-          <a href="#grocery" className="text-gray-600 hover:text-brand-pink transition-colors py-2 lg:py-0">GROCERIES</a>
+        {/* Center Section (Primary Navigation) */}
+        <div className="hidden lg:flex lg:justify-center font-medium space-x-8">
+          <a href="#everything" className="text-gray-600 hover:text-brand-pink transition-colors">EVERYTHING</a>
+          <a href="#women" className="text-gray-600 hover:text-brand-pink transition-colors">WOMEN</a>
+          <a href="#men" className="text-gray-600 hover:text-brand-pink transition-colors">MEN</a>
+          <a href="#accessories" className="text-gray-600 hover:text-brand-pink transition-colors">ACCESSORIES</a>
+          <a href="#grocery" className="text-gray-600 hover:text-brand-pink transition-colors">GROCERIES</a>
         </div>
+        
+        {/* Mobile Nav Menu (managed by state) */}
+         {isMenuOpen && (
+           <div className="absolute top-full left-0 right-0 bg-white p-4 shadow-lg lg:hidden flex flex-col items-center space-y-3">
+              <a href="#everything" className="text-gray-600 hover:text-brand-pink transition-colors py-2">EVERYTHING</a>
+              <a href="#women" className="text-gray-600 hover:text-brand-pink transition-colors py-2">WOMEN</a>
+              <a href="#men" className="text-gray-600 hover:text-brand-pink transition-colors py-2">MEN</a>
+              <a href="#accessories" className="text-gray-600 hover:text-brand-pink transition-colors py-2">ACCESSORIES</a>
+              <a href="#grocery" className="text-gray-600 hover:text-brand-pink transition-colors py-2">GROCERIES</a>
+           </div>
+         )}
 
-        {/* Right Side Icons & Links */}
-        <div className="flex items-center space-x-5">
+
+        {/* Right Section (Icons & Links) */}
+        <div className="flex items-center space-x-5 lg:flex-1 lg:justify-end">
           <Link to="/about" className="hidden md:block text-sm font-medium text-gray-600 hover:text-brand-pink">ABOUT</Link>
           <Link to="/contact" className="hidden md:block text-sm font-medium text-gray-600 hover:text-brand-pink">CONTACT US</Link>
           <span className="text-sm font-bold text-gray-800">₹{cartTotal.toFixed(2)}</span>

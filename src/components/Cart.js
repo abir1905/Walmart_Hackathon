@@ -18,8 +18,22 @@ const Cart = () => {
   } = useCart();
   
   const { userAddress, setUserAddress } = useLocation();
+  
+  // A more robust check for a valid, filled-in address.
+  const isAddressValid = userAddress && userAddress.fullAddress;
+
   const [rechargeAmount, setRechargeAmount] = React.useState(10000);
-  const [showAddressForm, setShowAddressForm] = React.useState(!userAddress);
+  
+  // State to control showing the address form. It now correctly defaults
+  // to showing the form if the address is not valid.
+  const [showAddressForm, setShowAddressForm] = React.useState(!isAddressValid);
+
+  // This effect ensures that if the user address is removed or added elsewhere,
+  // the component will correctly show or hide the form.
+  React.useEffect(() => {
+    setShowAddressForm(!isAddressValid);
+  }, [isAddressValid]);
+
 
   const formatCurrency = (value) => {
     const num = parseFloat(value);
@@ -27,7 +41,8 @@ const Cart = () => {
   };
 
   const handlePayment = () => {
-    if (!userAddress) {
+    // This check is now redundant because the button is disabled, but it's good for safety.
+    if (!isAddressValid) {
       toast.error("Please add a delivery address");
       return;
     }
@@ -117,19 +132,23 @@ const Cart = () => {
                     setUserAddress(address);
                     setShowAddressForm(false);
                   } else {
-                    setShowAddressForm(false);
+                    // If cancel is hit, ensure we clear the address
+                    setUserAddress(null);
+                    setShowAddressForm(true);
                   }
                 }} 
               />
-            ) : userAddress ? (
+            ) : isAddressValid ? (
               <div className="border rounded-lg p-4 bg-gray-50">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">{userAddress.name}</p>
                     <p className="text-gray-700 mt-1">{userAddress.fullAddress}</p>
-                    <p className="text-gray-600 mt-1">
-                      <span className="font-medium">Phone:</span> {userAddress.phone}
-                    </p>
+                    {userAddress.email && (
+                      <p className="text-gray-600 mt-1">
+                        <span className="font-medium">Email:</span> {userAddress.email}
+                      </p>
+                    )}
                     {userAddress.landmark && (
                       <p className="text-gray-600 mt-1">
                         <span className="font-medium">Landmark:</span> {userAddress.landmark}
@@ -150,17 +169,7 @@ const Cart = () => {
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No delivery address added</p>
-                <button
-                  onClick={() => setShowAddressForm(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Add Delivery Address
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
           
           {/* Cart Items */}
@@ -227,7 +236,7 @@ const Cart = () => {
           <h2 className="text-xl font-semibold mb-4">Wallet</h2>
           <div className="mb-4">
             <p className="text-gray-600">Available Balance</p>
-            <p className="text-2xl font-bold">₹{walletBalance}</p>
+            <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
           </div>
           <div className="mb-6">
             <label className="block text-gray-600 mb-1">Recharge Amount (₹)</label>
@@ -248,18 +257,18 @@ const Cart = () => {
 
           <div className="mb-4">
             <p className="text-gray-600">Cart Total</p>
-            <p className="text-2xl font-bold">₹{cartTotal}</p>
+            <p className="text-2xl font-bold">₹{cartTotal.toFixed(2)}</p>
           </div>
           <button
             onClick={handlePayment}
-            disabled={cartItems.length === 0 || !userAddress}
-            className={`w-full py-3 rounded-lg text-white font-medium ${
-              cartItems.length === 0 || !userAddress
+            disabled={cartItems.length === 0 || !isAddressValid}
+            className={`w-full py-3 rounded-lg text-white font-medium transition-colors ${
+              cartItems.length === 0 || !isAddressValid
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#0071dc] hover:bg-[#06529a]"
             }`}
           >
-            {!userAddress ? "Add Address to Pay" : "Pay Now"}
+            {!isAddressValid ? "Add Address to Pay" : "Pay Now"}
           </button>
         </div>
       </div>
