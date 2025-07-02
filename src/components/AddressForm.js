@@ -17,7 +17,6 @@ const AddressForm = ({ onAddressChange }) => {
     addressType: 'home'
   });
   const [formErrors, setFormErrors] = useState({});
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -73,6 +72,28 @@ const AddressForm = ({ onAddressChange }) => {
         });
     }
   }, [coords, currentUser]);
+  React.useEffect(() => {
+  if (coords) {
+    reverseGeocode(coords.lat, coords.lng)
+      .then(result => {
+        const addressComponents = parseAddressComponents(result.address_components);
+        // Use functional update to avoid formData dependency
+        setFormData(prev => ({
+          ...prev,
+          area: addressComponents.route || '',
+          city: addressComponents.locality || addressComponents.city || '',
+          state: addressComponents.state || '',
+          pincode: addressComponents.postal_code || '',
+          locality: addressComponents.neighborhood || addressComponents.sublocality || '',
+          fullAddress: result.formatted_address
+        }));
+      })
+      .catch(err => {
+        console.error('Geocoding error:', err);
+        setFormErrors(prev => ({ ...prev, general: err.message || 'Failed to fetch address details' }));
+      });
+  }
+}, [coords]);
 
   const parseAddressComponents = (components) => {
     const address = {
