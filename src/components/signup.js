@@ -48,7 +48,7 @@ const Signup = () => {
   };
   
   return (
-    <div className="flex h-screen bg-gray-100 font-sans">
+    <div className="flex h-screen bg-[#F8E5C8] font-sans">
       {/* Left Panel (same as login) */}
       <div className="w-1/2 bg-gradient-to-br from-blue-600 to-blue-400 p-10 text-white flex flex-col justify-center rounded-r-3xl">
         <h1 className="text-4xl font-bold mb-4 self-center">"Revolutionize Your Workflow!"</h1>

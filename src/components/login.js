@@ -74,7 +74,7 @@ const Login = () => {
   if (checkingAuth) return <div className="flex h-screen justify-center items-center text-xl">Loading...</div>;
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans">
+    <div className="flex h-screen bg-[#F8E5C8] font-sans">
       {/* Left Panel */}
       <div className="w-1/2 bg-gradient-to-br from-blue-600 to-blue-400 p-10 text-white flex flex-col justify-center rounded-r-3xl">
         <h1 className="text-4xl font-bold mb-4 self-center">"Revolutionize Your Workflow!"</h1>
