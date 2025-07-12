@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import logoimg from "../assets/logo1.png";
+// import logoimg from "../assets/logo1.png";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const Signup = () => {
         <p className="text-md mb-8 self-center">
           Join thousands of smart sellers using our dashboard to streamline operations, unlock insights, and dominate the digital marketplace — all in one sleek interface.
         </p>
-        <img src={logoimg} alt="Characters" className="w-3/4 mx-auto" />
+          <span className="text-8xl font-bold flex justify-center">DollarStore</span>
       </div>
 
       {/* Right Panel (signup form) */}
